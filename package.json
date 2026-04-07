@@ -1,0 +1,58 @@
+{
+  "name": "@crag-pro/doc-parser",
+  "version": "0.1.0",
+  "description": "Multi-format document parser: PDF (with OCR + AI vision fallback), Word, Excel, PowerPoint, plaintext",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crag-pro/doc-parser.git"
+  },
+  "homepage": "https://github.com/crag-pro/doc-parser#readme",
+  "bugs": "https://github.com/crag-pro/doc-parser/issues",
+  "keywords": ["pdf", "docx", "xlsx", "pptx", "ocr", "document-parser", "tesseract", "anthropic", "ai-ocr"],
+  "bin": {
+    "doc-parser": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build && npm run test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "cli-progress": "^3.12.0",
+    "commander": "^12.0.0",
+    "dotenv": "^16.0.0",
+    "exceljs": "^4.4.0",
+    "mammoth": "^1.8.0",
+    "pdf-parse": "^1.1.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/archiver": "^7.0.0",
+    "@types/cli-progress": "^3.11.6",
+    "@types/node": "^22.0.0",
+    "@types/pdf-parse": "^1.1.5",
+    "@types/pdfkit": "^0.17.5",
+    "archiver": "^7.0.1",
+    "pdfkit": "^0.18.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
