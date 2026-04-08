@@ -37,14 +37,58 @@ export async function parseXlsx(filePath: string, options?: ParseOptions): Promi
     const lines: string[] = [];
     let totalRows = 0;
 
+    const formatCell = (cell: ExcelJS.Cell): string => {
+      const v: unknown = cell.value;
+      if (v == null) return "";
+      // Formula cell: { formula, result } (or { sharedFormula, result })
+      if (typeof v === "object" && ("formula" in (v as object) || "sharedFormula" in (v as object))) {
+        const result = (v as { result?: unknown }).result;
+        if (result == null) return "";
+        if (result instanceof Date) return result.toISOString().slice(0, 10);
+        if (typeof result === "object" && "error" in (result as object)) {
+          return String((result as { error: unknown }).error);
+        }
+        return String(result);
+      }
+      // Date cell
+      if (v instanceof Date) {
+        const fmt = (cell.numFmt ?? "").toString();
+        if (/h|m:|:s|s:/i.test(fmt)) return v.toISOString();
+        return v.toISOString().slice(0, 10);
+      }
+      // Rich text
+      if (typeof v === "object" && "richText" in (v as object)) {
+        const rt = (v as { richText: { text: string }[] }).richText;
+        return rt.map((r) => r.text).join("");
+      }
+      // Hyperlink
+      if (typeof v === "object" && "text" in (v as object)) {
+        return String((v as { text: unknown }).text);
+      }
+      // Error
+      if (typeof v === "object" && "error" in (v as object)) {
+        return String((v as { error: unknown }).error);
+      }
+      return String(v);
+    };
+
     workbook.eachSheet((sheet) => {
       lines.push(`--- Sheet: ${sheet.name} ---`);
       let dataRowCount = 0;
       sheet.eachRow((row) => {
         const isHeader = row.number === 1;
         if (!isHeader && dataRowCount >= maxRows) return;
-        const values = row.values as (string | number | null | undefined)[];
-        const cells = values.slice(1).map((v) => (v != null ? String(v) : ""));
+        const cells: string[] = [];
+        const cellCount = row.cellCount;
+        for (let col = 1; col <= cellCount; col++) {
+          const cell = sheet.getCell(row.number, col);
+          // Skip non-master cells of a merged range
+          if (cell.isMerged && cell.master !== cell) {
+            cells.push("");
+            continue;
+          }
+          cells.push(formatCell(cell));
+        }
         lines.push(cells.join("\t"));
         totalRows++;
         if (!isHeader) dataRowCount++;

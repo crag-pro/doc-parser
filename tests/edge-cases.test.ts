@@ -89,26 +89,19 @@ describe("edge cases: XLSX", () => {
     expect(r.metadata.sheetCount).toBe("2");
   });
 
-  // BUG: ExcelJS formula cells stringify as "[object Object]" because the
-  // xlsx parser does `String(v)` on each cell value without unwrapping
-  // `{formula, result}` shapes. Should emit the computed result instead.
-  // src/parsers/xlsx.ts:~45 (values.slice(1).map(v => String(v))).
-  it("workbook with formulas: BUG — formula cells render as [object Object]", async () => {
+  it("workbook with formulas: emits cached result values", async () => {
     const r = await parseXlsx(resolve(E, "formulas.xlsx"));
-    expect(r.text).toContain("[object Object]");
-    // When fixed, these should pass instead:
-    // expect(r.text).toContain("3");
-    // expect(r.text).toContain("33");
+    expect(r.text).not.toContain("[object Object]");
+    expect(r.text).toContain("3");
+    expect(r.text).toContain("30");
+    expect(r.text).toContain("33");
   });
 
-  // BUG: Date cells serialize using the host's locale/timezone-dependent
-  // JS Date.toString() instead of ISO-8601. This makes extracted XLSX text
-  // non-deterministic across environments.
-  it("workbook with dates: includes year (format is locale-dependent — BUG)", async () => {
+  it("workbook with dates: emits deterministic ISO-8601 dates", async () => {
     const r = await parseXlsx(resolve(E, "dates.xlsx"));
-    expect(r.text).toContain("2026");
+    expect(r.text).toContain("2026-01-15");
+    expect(r.text).toContain("2026-02-20");
     expect(r.text).toContain("Kickoff");
-    // Ideally: expect(r.text).toContain("2026-01-15")
   });
 
   it("empty workbook still emits the sheet header", async () => {
@@ -117,13 +110,10 @@ describe("edge cases: XLSX", () => {
     expect(r.warnings).toHaveLength(0);
   });
 
-  // BUG: merged cells are expanded into every cell of the merge range, so
-  // the same value appears twice on a row that spans A1:B1. Expected: one
-  // value plus empty cell, or some explicit "merged" marker.
-  it("merged cells: BUG — value duplicates across the merged range", async () => {
+  it("merged cells: master value appears exactly once across the merge range", async () => {
     const r = await parseXlsx(resolve(E, "merged.xlsx"));
     const firstRow = r.text.split("\n").find((l) => l.includes("Header spans"))!;
-    expect(firstRow.split("\t").filter((c) => c === "Header spans two cols")).toHaveLength(2);
+    expect(firstRow.split("\t").filter((c) => c === "Header spans two cols")).toHaveLength(1);
   });
 
   it("truncated XLSX returns empty text + ExcelJS failure warning", async () => {
