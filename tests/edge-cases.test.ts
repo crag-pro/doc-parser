@@ -162,39 +162,26 @@ describe("edge cases: plaintext encodings", () => {
     expect(r.warnings).toHaveLength(0);
   });
 
-  // BUG: parser only tries UTF-8 then falls back to latin1. UTF-16 LE BOM
-  // files (\xff\xfe…) are not detected and decode to mojibake.
-  // src/parsers/plaintext.ts — add BOM sniff for \xff\xfe / \xfe\xff.
-  it("UTF-16 LE BOM: BUG — decoded as latin1 (mojibake)", async () => {
+  it("UTF-16 LE BOM: detected via BOM and decoded correctly", async () => {
     const r = await parsePlaintext(resolve(E, "utf16-le.txt"));
-    expect(r.warnings).toContain(
-      "plaintext: non-UTF8 encoding detected, decoded as latin1",
-    );
-    expect(r.text).not.toContain("hi"); // mojibake: "ÿþh\u0000i\u0000"
-    // TODO: should detect UTF-16 LE BOM and produce "hi"
+    expect(r.text).toContain("hi");
+    expect(r.warnings.join(" ")).toMatch(/utf-16le/);
   });
 
-  it("UTF-16 BE BOM: BUG — decoded as latin1 (mojibake)", async () => {
+  it("UTF-16 BE BOM: detected via BOM and decoded correctly", async () => {
     const r = await parsePlaintext(resolve(E, "utf16-be.txt"));
-    expect(r.warnings).toContain(
-      "plaintext: non-UTF8 encoding detected, decoded as latin1",
-    );
-    expect(r.text).not.toContain("hi");
-    // TODO: should detect UTF-16 BE BOM and produce "hi"
+    expect(r.text).toContain("hi");
+    expect(r.warnings.join(" ")).toMatch(/utf-16be/);
   });
 
-  // BUG: Windows-1252 bytes decode as latin1, so 0x80/0x93/0x94 (euro and
-  // smart quotes) become C1 control chars and get lost / mis-rendered.
-  // TODO: should detect or allow overriding to windows-1252.
-  it("Windows-1252 smart quotes + euro: BUG — decoded as latin1, losing glyphs", async () => {
+  it("Windows-1252 smart quotes + euro: detected and decoded correctly", async () => {
     const r = await parsePlaintext(resolve(E, "windows-1252.txt"));
-    expect(r.warnings).toContain(
-      "plaintext: non-UTF8 encoding detected, decoded as latin1",
-    );
     expect(r.text).toContain("Hello");
     expect(r.text).toContain("world");
-    expect(r.text).not.toContain("€"); // lost
-    expect(r.text).not.toContain("\u201C"); // lost
+    expect(r.text).toContain("\u201C");
+    expect(r.text).toContain("\u201D");
+    expect(r.text).toContain("€");
+    expect(r.warnings.join(" ")).toMatch(/windows-1252/);
   });
 });
 
