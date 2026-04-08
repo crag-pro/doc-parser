@@ -1,18 +1,23 @@
 import { basename, extname, join } from "path";
-import { ParseResult } from "../config/types.js";
+import { ParseResult, ParseOptions, MAX_FILE_SIZE } from "../config/types.js";
 import { execFile } from "child_process";
 import { promisify } from "util";
-import { readdir, readFile, rm } from "fs/promises";
+import { readdir, readFile, rm, stat } from "fs/promises";
 import { tmpdir } from "os";
 
 const execFileAsync = promisify(execFile);
 
-export async function parsePptx(filePath: string): Promise<ParseResult> {
+export async function parsePptx(filePath: string, options?: ParseOptions): Promise<ParseResult> {
   const fileName = basename(filePath);
   const extension = extname(filePath).toLowerCase();
   const warnings: string[] = [];
 
   try {
+    const maxSize = options?.maxFileSize ?? MAX_FILE_SIZE;
+    const st = await stat(filePath);
+    if (st.size > maxSize) {
+      throw new Error(`File size ${st.size} exceeds max ${maxSize} bytes`);
+    }
     const tmpDir = join(tmpdir(), `doc-parser-pptx-${Date.now()}`);
 
     try {
@@ -30,7 +35,7 @@ export async function parsePptx(filePath: string): Promise<ParseResult> {
         .filter((f) => f.match(/^slide\d+\.xml$/))
         .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
     } catch {
-      // No slides directory
+      warnings.push("pptx missing ppt/slides directory or malformed structure");
     }
 
     const texts: string[] = [];

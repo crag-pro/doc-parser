@@ -27,4 +27,10 @@ describe("parsePptx — minimal.pptx fixture", () => {
     const result = await parsePptx(resolve(fixtures, "minimal.pptx"));
     expect(result.pageCount).toBe(1);
   });
+
+  it("warns when ppt/slides directory is missing", async () => {
+    const result = await parsePptx(resolve(fixtures, "malformed.pptx"));
+    expect(result.warnings.some((w) => w.includes("missing ppt/slides"))).toBe(true);
+    expect(result.text).toBe("");
+  });
 });
