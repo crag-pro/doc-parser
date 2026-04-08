@@ -30,10 +30,3 @@ describe("parseXlsx", () => {
   });
 });
 
-describe("parseXlsx — legacy .xls rejection", () => {
-  it("throws clear error for legacy .xls files directing to convert to .xlsx", async () => {
-    await expect(parseXlsx(resolve(fixtures, "legacy.xls"))).rejects.toThrow(
-      /\.xls is not supported, convert to \.xlsx/
-    );
-  });
-});

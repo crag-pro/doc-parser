@@ -26,7 +26,7 @@ console.log(result.metadata);
 |---|---|---|
 | `.pdf` | pdf-parse | OCR fallback (Tesseract) for scanned pages, AI vision API for low-confidence OCR |
 | `.docx` | mammoth | |
-| `.xlsx`, `.xls` | exceljs / xlsx | |
+| `.xlsx` | exceljs | |
 | `.pptx` | XML extraction | |
 | `.txt`, `.csv`, `.md`, `.msg` | plaintext | |
 

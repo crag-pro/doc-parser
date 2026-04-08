@@ -13,12 +13,6 @@ export async function parseXlsx(filePath: string, options?: ParseOptions): Promi
   const warnings: string[] = [];
   const maxRows = options?.maxRows ?? DEFAULT_MAX_ROWS;
 
-  if (extension === ".xls") {
-    throw new Error(
-      "Legacy .xls files are not supported, convert to .xlsx first. (.xls is not supported, convert to .xlsx)"
-    );
-  }
-
   if (!VALID_XLSX_EXTENSIONS.has(extension)) {
     return {
       filePath, fileName, extension,

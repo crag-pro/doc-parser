@@ -14,7 +14,6 @@ const EXTENSION_MAP: Record<string, (filePath: string, options?: ParseOptions) =
   ".docx": parseDocx,
   ".doc": parseDocx,
   ".xlsx": parseXlsx,
-  ".xls": parseXlsx,
   ".pptx": parsePptx,
 };
 
