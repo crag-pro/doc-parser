@@ -20,8 +20,15 @@ export async function parseWithAnthropic(filePath: string, apiKey: string, retri
           ],
         }],
       });
-      const textBlock = response.content.find((c) => c.type === "text");
-      return textBlock ? textBlock.text : "";
+      const textBlocks = response.content.filter((c: { type: string }) => c.type === "text") as Array<{ type: "text"; text: string }>;
+      if (textBlocks.length === 0) {
+        throw new Error("AI vision returned no text content");
+      }
+      const combined = textBlocks.map((b) => b.text).join("\n");
+      if (combined.trim().length === 0) {
+        throw new Error("AI vision returned no text content");
+      }
+      return combined;
     } catch (err) {
       lastError = err as Error;
       if (attempt < retries) await new Promise((r) => setTimeout(r, 1000 * 2 ** attempt));

@@ -1,7 +1,7 @@
-import { readFile } from "fs/promises";
+import { readFile, stat } from "fs/promises";
 import { basename, extname } from "path";
 import pdfParse from "pdf-parse";
-import { ParseResult, ParseOptions } from "../config/types.js";
+import { ParseResult, ParseOptions, MAX_FILE_SIZE } from "../config/types.js";
 import { isScanned } from "../ocr/detector.js";
 import { hasTesseract, runTesseract } from "../ocr/tesseract.js";
 import { parseWithAnthropic } from "../ocr/anthropic-vision.js";
@@ -12,6 +12,11 @@ export async function parsePdf(filePath: string, options?: ParseOptions): Promis
   const warnings: string[] = [];
 
   try {
+    const maxSize = options?.maxFileSize ?? MAX_FILE_SIZE;
+    const st = await stat(filePath);
+    if (st.size > maxSize) {
+      throw new Error(`File size ${st.size} exceeds max ${maxSize} bytes`);
+    }
     const buffer = await readFile(filePath);
     const data = await pdfParse(buffer);
     const text = data.text;
