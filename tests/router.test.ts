@@ -13,10 +13,16 @@ describe("getSupportedExtensions", () => {
     expect(exts).toContain(".docx");
     expect(exts).toContain(".doc");
     expect(exts).toContain(".xlsx");
-    expect(exts).toContain(".xls");
+    expect(exts).not.toContain(".xls");
     expect(exts).toContain(".pptx");
     expect(exts).toContain(".txt");
     expect(exts).toContain(".csv");
+  });
+
+  it("does not route .xls (legacy format unsupported)", async () => {
+    const result = await parse(resolve(fixtures, "sample.txt"), undefined, ".xls");
+    expect(result.text).toBe("");
+    expect(result.warnings).toContain("Unsupported file extension: .xls");
   });
 });
 

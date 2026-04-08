@@ -1,0 +1,10 @@
+{
+  "mode": "pre",
+  "tag": "crag",
+  "initialVersions": {
+    "@crag-pro/doc-parser": "0.2.0"
+  },
+  "changesets": [
+    "pre-adoption-fixes"
+  ]
+}

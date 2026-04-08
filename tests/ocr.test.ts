@@ -48,13 +48,27 @@ describe("parseWithAnthropic", () => {
     expect(mockCreate).toHaveBeenCalledTimes(1);
   });
 
-  it("returns empty string when response has no text block", async () => {
-    mockCreate.mockResolvedValueOnce({
+  it("throws when response has no text block", async () => {
+    mockCreate.mockResolvedValue({
       content: [{ type: "tool_use", id: "tu_1", name: "foo", input: {} }],
     });
 
+    await expect(parseWithAnthropic("/fake/file.pdf", "sk-ant-test", 0)).rejects.toThrow(
+      "AI vision returned no text content",
+    );
+  });
+
+  it("concatenates multiple text blocks", async () => {
+    mockCreate.mockResolvedValueOnce({
+      content: [
+        { type: "text", text: "Part one" },
+        { type: "text", text: "Part two" },
+      ],
+    });
+
     const result = await parseWithAnthropic("/fake/file.pdf", "sk-ant-test");
-    expect(result).toBe("");
+    expect(result).toContain("Part one");
+    expect(result).toContain("Part two");
   });
 
   it("retries on failure and succeeds on second attempt", async () => {
