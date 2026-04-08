@@ -23,7 +23,10 @@ export interface ParseOptions {
   enrich?: boolean;
   anthropicApiKey?: string;
   maxRows?: number;
+  maxFileSize?: number;
 }
+
+export const MAX_FILE_SIZE = 500 * 1024 * 1024;
 
 export interface BatchSummary {
   totalFiles: number;

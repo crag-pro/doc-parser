@@ -1,9 +1,10 @@
 import ExcelJS from "exceljs";
 import { createRequire } from "module";
+import { stat } from "fs/promises";
 import { basename, extname } from "path";
 const require = createRequire(import.meta.url);
 const XLSX = require("xlsx") as typeof import("xlsx");
-import { ParseResult, ParseOptions } from "../config/types.js";
+import { ParseResult, ParseOptions, MAX_FILE_SIZE } from "../config/types.js";
 
 const DEFAULT_MAX_ROWS = 10000;
 
@@ -28,6 +29,11 @@ export async function parseXlsx(filePath: string, options?: ParseOptions): Promi
   }
 
   try {
+    const maxSize = options?.maxFileSize ?? MAX_FILE_SIZE;
+    const st = await stat(filePath);
+    if (st.size > maxSize) {
+      throw new Error(`File size ${st.size} exceeds max ${maxSize} bytes`);
+    }
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(filePath);
 

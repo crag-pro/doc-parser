@@ -1,13 +1,19 @@
 import mammoth from "mammoth";
+import { stat } from "fs/promises";
 import { basename, extname } from "path";
-import { ParseResult } from "../config/types.js";
+import { ParseResult, ParseOptions, MAX_FILE_SIZE } from "../config/types.js";
 
-export async function parseDocx(filePath: string): Promise<ParseResult> {
+export async function parseDocx(filePath: string, options?: ParseOptions): Promise<ParseResult> {
   const fileName = basename(filePath);
   const extension = extname(filePath).toLowerCase();
   const warnings: string[] = [];
 
   try {
+    const maxSize = options?.maxFileSize ?? MAX_FILE_SIZE;
+    const st = await stat(filePath);
+    if (st.size > maxSize) {
+      throw new Error(`File size ${st.size} exceeds max ${maxSize} bytes`);
+    }
     const result = await mammoth.extractRawText({ path: filePath });
     if (result.messages.length > 0) {
       for (const msg of result.messages) {
