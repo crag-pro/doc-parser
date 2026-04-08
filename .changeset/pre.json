@@ -5,6 +5,7 @@
     "@crag-pro/doc-parser": "0.2.0"
   },
   "changesets": [
+    "edge-case-corpus-and-xlsx-hang-fix",
     "pre-adoption-fixes"
   ]
 }

@@ -1,6 +1,6 @@
 {
   "name": "@crag-pro/doc-parser",
-  "version": "0.3.0-crag.0",
+  "version": "0.3.0-crag.1",
   "description": "Multi-format document parser: PDF (with OCR + AI vision fallback), Word, Excel, PowerPoint, plaintext",
   "type": "module",
   "license": "MIT",
