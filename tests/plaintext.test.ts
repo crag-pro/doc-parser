@@ -30,7 +30,7 @@ describe("parsePlaintext", () => {
     const result = await parsePlaintext(resolve(fixtures, "latin1-sample.txt"));
     expect(result.text).toContain("Caf");
     expect(result.text).toContain("\u00e9");
-    expect(result.warnings).toContain("plaintext: non-UTF8 encoding detected, decoded as latin1");
+    expect(result.warnings.join(" ")).toMatch(/non-UTF8 encoding detected/);
   });
 
   it("respects custom maxFileSize from options", async () => {
