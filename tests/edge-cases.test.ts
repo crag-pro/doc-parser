@@ -119,6 +119,13 @@ describe("edge cases: XLSX", () => {
     expect(r.text).toBe("");
     expect(r.warnings.join(" ")).toMatch(/ExcelJS failed|Corrupted zip/i);
   });
+
+  it("full-column dataValidations parse via streaming (regression: used to hang indefinitely)", async () => {
+    const r = await parseXlsx(resolve(E, "full-column-validations.xlsx"));
+    expect(r.text.length).toBeGreaterThan(100);
+    expect(r.method).toBe("exceljs");
+    expect(r.text).toContain("CHMP");
+  }, 10000);
 });
 
 // ──────────────────────────────────────────────────────────────
