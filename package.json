@@ -43,6 +43,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/cli.ts",
+    "fixtures:edge": "tsx tests/fixtures/generate-edge-cases.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "prepublishOnly": "npm run build && npm run test"
