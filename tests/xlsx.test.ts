@@ -1,6 +1,5 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { parseXlsx } from "../src/parsers/xlsx.js";
-import ExcelJS from "exceljs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -31,17 +30,10 @@ describe("parseXlsx", () => {
   });
 });
 
-describe("parseXlsx — SheetJS fallback", () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  it("falls back to SheetJS when ExcelJS throws, text still contains Alice", async () => {
-    const xlsxProto = Object.getPrototypeOf(new ExcelJS.Workbook().xlsx);
-    vi.spyOn(xlsxProto, "readFile").mockRejectedValue(new Error("simulated ExcelJS failure"));
-
-    const result = await parseXlsx(resolve(fixtures, "sample.xlsx"));
-    expect(result.text).toContain("Alice");
-    expect(result.warnings.some((w) => w.includes("ExcelJS failed"))).toBe(true);
+describe("parseXlsx — legacy .xls rejection", () => {
+  it("throws clear error for legacy .xls files directing to convert to .xlsx", async () => {
+    await expect(parseXlsx(resolve(fixtures, "legacy.xls"))).rejects.toThrow(
+      /\.xls is not supported, convert to \.xlsx/
+    );
   });
 });
