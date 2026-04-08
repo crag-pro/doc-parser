@@ -40,20 +40,18 @@ describe("edge cases: PDF", () => {
     expect(r.warnings.join(" ")).toMatch(/Failed to parse/i);
   });
 
-  // BUG: pdf-parse 1.1.1 fails to parse PDFs produced by the bundled pdfkit
-  // (blank page or text-only) with "bad XRef entry". Both `blank.pdf` and
-  // `table.pdf` are valid PDFs per pdfkit but trigger the same error.
-  // Documented here — do not fix in this PR. See tech-debt.
-  it("blank PDF (pdfkit-generated): pdf-parse currently errors with bad XRef", async () => {
+  it("blank PDF (pdfkit-generated): parses cleanly with empty text", async () => {
     const r = await parsePdf(resolve(E, "blank.pdf"));
     expect(r.text).toBe("");
-    expect(r.warnings.join(" ")).toMatch(/bad XRef|Failed to parse/i);
+    expect(r.pageCount).toBe(1);
   });
 
-  it("table PDF (pdfkit-generated): pdf-parse currently errors with bad XRef", async () => {
+  it("table PDF (pdfkit-generated): extracts tabular text via unpdf", async () => {
     const r = await parsePdf(resolve(E, "table.pdf"));
-    // BUG: when pdf-parse is fixed, this should extract "SOP-001" etc.
-    expect(r.warnings.join(" ")).toMatch(/bad XRef|Failed to parse/i);
+    expect(r.method).toBe("unpdf");
+    expect(r.text).toContain("SOP-001");
+    expect(r.text).toContain("SOP-002");
+    expect(r.text).toContain("SOP-003");
   });
 });
 

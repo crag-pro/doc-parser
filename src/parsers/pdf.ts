@@ -1,6 +1,6 @@
 import { readFile, stat } from "fs/promises";
 import { basename, extname } from "path";
-import pdfParse from "pdf-parse";
+import { extractText, getDocumentProxy } from "unpdf";
 import { ParseResult, ParseOptions, MAX_FILE_SIZE } from "../config/types.js";
 import { isScanned } from "../ocr/detector.js";
 import { hasTesseract, runTesseract } from "../ocr/tesseract.js";
@@ -18,14 +18,15 @@ export async function parsePdf(filePath: string, options?: ParseOptions): Promis
       throw new Error(`File size ${st.size} exceeds max ${maxSize} bytes`);
     }
     const buffer = await readFile(filePath);
-    const data = await pdfParse(buffer);
-    const text = data.text;
-    const pageCount = data.numpages;
+    const pdf = await getDocumentProxy(new Uint8Array(buffer));
+    const extracted = await extractText(pdf, { mergePages: true });
+    const text = Array.isArray(extracted.text) ? extracted.text.join("\n") : extracted.text;
+    const pageCount = extracted.totalPages;
 
     if (!isScanned(text, pageCount)) {
       return {
-        filePath, fileName, extension, method: "pdf-parse", text, pageCount,
-        metadata: { title: data.info?.Title ?? "", author: data.info?.Author ?? "" },
+        filePath, fileName, extension, method: "unpdf", text, pageCount,
+        metadata: {},
         warnings, parsedAt: new Date().toISOString(),
       };
     }
@@ -63,12 +64,12 @@ export async function parsePdf(filePath: string, options?: ParseOptions): Promis
     }
 
     return {
-      filePath, fileName, extension, method: "pdf-parse", text, pageCount,
+      filePath, fileName, extension, method: "unpdf", text, pageCount,
       metadata: {}, warnings, parsedAt: new Date().toISOString(),
     };
   } catch (err) {
     return {
-      filePath, fileName, extension, method: "pdf-parse", text: "", pageCount: null,
+      filePath, fileName, extension, method: "unpdf", text: "", pageCount: null,
       metadata: {}, warnings: [`Failed to parse: ${(err as Error).message}`],
       parsedAt: new Date().toISOString(),
     };

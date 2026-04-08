@@ -1,5 +1,5 @@
 export type ParseMethod =
-  | "pdf-parse"
+  | "unpdf"
   | "mammoth"
   | "exceljs"
   | "pptx"

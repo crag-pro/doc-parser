@@ -20,13 +20,10 @@ vi.mock("../src/ocr/anthropic-vision.js", () => ({
   parseWithAnthropic: vi.fn(async () => ""),
 }));
 
-// Mock pdf-parse so we control what it returns without needing a real valid PDF
-vi.mock("pdf-parse", () => ({
-  default: vi.fn(async () => ({
-    text: "Hello World",
-    numpages: 1,
-    info: { Title: "Test", Author: "Tester" },
-  })),
+// Mock unpdf so we control what it returns without needing a real valid PDF
+vi.mock("unpdf", () => ({
+  getDocumentProxy: vi.fn(async () => ({})),
+  extractText: vi.fn(async () => ({ text: "Hello World", totalPages: 1 })),
 }));
 
 import { isScanned } from "../src/ocr/detector.js";
@@ -39,9 +36,9 @@ describe("parsePdf", () => {
   });
 
   it("returns empty with warning for non-PDF file", async () => {
-    // pdf-parse throws for non-PDF files — simulate that
-    const { default: pdfParse } = await import("pdf-parse");
-    vi.mocked(pdfParse).mockRejectedValueOnce(new Error("Invalid PDF"));
+    // unpdf throws for non-PDF files — simulate that
+    const { getDocumentProxy } = await import("unpdf");
+    vi.mocked(getDocumentProxy).mockRejectedValueOnce(new Error("Invalid PDF"));
     vi.mocked(isScanned).mockReturnValue(false);
 
     const result = await parsePdf(resolve(fixtures, "sample.txt"));
@@ -61,7 +58,7 @@ describe("parsePdf — normal text extraction", () => {
 
   it("extracts text from a valid PDF file", async () => {
     const result = await parsePdf(resolve(__dirname, "fixtures/minimal.pdf"));
-    expect(result.method).toBe("pdf-parse");
+    expect(result.method).toBe("unpdf");
     expect(result.text).toContain("Hello World");
     expect(result.extension).toBe(".pdf");
     expect(result.warnings).toHaveLength(0);
@@ -94,7 +91,7 @@ describe("parsePdf — OCR Tesseract fallback", () => {
     vi.mocked(runTesseract).mockResolvedValue("x"); // shorter than "Hello World" from pdf-parse mock
 
     const result = await parsePdf(resolve(__dirname, "fixtures/minimal.pdf"));
-    expect(result.method).toBe("pdf-parse");
+    expect(result.method).toBe("unpdf");
   });
 
   it("warns when Tesseract is not installed", async () => {
